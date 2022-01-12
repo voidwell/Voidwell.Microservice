@@ -8,6 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{18E511F6-7BA0-40F0-AE0D-09BE219B2CB2}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		build.bat = build.bat
+		Jenkinsfile = Jenkinsfile
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -18,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5B32E5EC-C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voidwell.Microservice.Test", "test\Voidwell.Microservice.Test\Voidwell.Microservice.Test.csproj", "{AD363653-34FD-4D03-8E58-8D506C232AE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voidwell.Microservice.TestApp", "test\Voidwell.Microservice.TestApp\Voidwell.Microservice.TestApp\Voidwell.Microservice.TestApp.csproj", "{515F582D-93B2-4C5F-9A11-1BE139902B8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voidwell.Microservice.TestApp", "test\Voidwell.Microservice.TestApp\Voidwell.Microservice.TestApp\Voidwell.Microservice.TestApp.csproj", "{515F582D-93B2-4C5F-9A11-1BE139902B8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

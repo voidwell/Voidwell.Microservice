@@ -16,8 +16,8 @@
         <PackageId>Voidwell.Microservice</PackageId>
         <PackageTags>voidwell</PackageTags>
         <PackageProjectUrl>https://github.com/voidwell/Voidwell.com</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/voidwell/Voidwell.Microservice/blob/master/LICENSE</PackageLicenseUrl>
-        <RepositoryType>git</RepositoryType>
+		<PackageLicenseUrl>https://github.com/voidwell/Voidwell.Microservice/blob/master/LICENSE</PackageLicenseUrl>
+		<RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/voidwell/Voidwell.Microservice</RepositoryUrl>
         <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
         <IncludeSymbols>False</IncludeSymbols>
