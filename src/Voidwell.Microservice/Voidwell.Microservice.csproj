@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+    <PropertyGroup>
+        <Version>1.0.0</Version>
+        <Description>
+            This is a simple package meant to be used for Voidwell.com microservices.
+        </Description>
+        <Copyright>Copyright 2022 - Jess Tremper</Copyright>
+        <Authors>VoidwellLabs</Authors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AssemblyName>Voidwell.Microservice</AssemblyName>
+        <PackageId>Voidwell.Microservice</PackageId>
+        <PackageTags>voidwell</PackageTags>
+        <PackageProjectUrl>https://github.com/voidwell/Voidwell.com</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/voidwell/Voidwell.Microservice/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/voidwell/Voidwell.Microservice</RepositoryUrl>
+        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <IncludeSymbols>False</IncludeSymbols>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+      <PackageReference Include="IdentityModel" Version="6.0.0" />
+      <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+      <PackageReference Include="Polly" Version="7.2.2" />
+      <PackageReference Include="Serilog" Version="2.10.0" />
+      <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+      <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
+      <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
+      <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+    </ItemGroup>
+
+</Project>

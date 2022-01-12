@@ -1,0 +1,9 @@
+﻿{
+  "TestClientId": "mutterblack",
+  "TestClientSecret": "mutterblackSecret",
+  "TestTokenServiceAddress": "https://auth.voidwell.com/connect/token",
+  "TestClientScopes": [
+    "voidwell-daybreakgames",
+    "voidwell-api"
+  ]
+}
