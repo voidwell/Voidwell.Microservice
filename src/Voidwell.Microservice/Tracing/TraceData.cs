@@ -11,12 +11,10 @@ namespace Voidwell.Microservice.Tracing
         internal const string RootKey = "Root";
         internal const string SelfKey = "Self";
         internal const string AncestryKey = "Ancestry";
-        internal const string NoTraceLogKey = "NoTraceLog";
 
         private string _root;
         private string _self;
         private string _ancestry;
-        private string _noTrace;
 
         private const string CustomValuePrefix = "Origin";
 
@@ -64,19 +62,6 @@ namespace Voidwell.Microservice.Tracing
                     _ancestry = TraceContext.DefaultAncestry;
                 }
                 return _ancestry;
-            }
-        }
-
-        public string NoTraceLog
-        {
-            get
-            {
-                if (_noTrace == null)
-                {
-                    _trace.TryGetValue(NoTraceLogKey, out _noTrace);
-                }
-
-                return _noTrace;
             }
         }
     }

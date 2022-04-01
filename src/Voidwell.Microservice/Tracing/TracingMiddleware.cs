@@ -40,17 +40,11 @@ namespace Voidwell.Microservice.Tracing
 
             await _next(httpContext);
 
-            if (!(_options.IgnoreTrace?.Any(a => a(httpContext)) ?? false) && !HasIgnoreEnabledByTraceHeader(traceContext))
+            if (!(_options.IgnoreTrace?.Any(a => a(httpContext)) ?? false))
             {
                 _logger.Log(LogLevel.Information, 10, new RequestCompleteLog(httpContext, traceContext.GetElapsedTime()),
                 null, RequestCompleteLog.Callback);
             }
-        }
-
-        private bool HasIgnoreEnabledByTraceHeader(TraceContext traceContext)
-        {
-            return !string.IsNullOrEmpty(traceContext.Data?.NoTraceLog) &&
-                   Boolean.TryParse(traceContext.Data?.NoTraceLog, out bool noTrace);
         }
     }
 }

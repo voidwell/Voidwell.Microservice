@@ -58,13 +58,6 @@ namespace Voidwell.Microservice.Tracing
                 yield return new KeyValuePair<string, string>(TraceData.SelfKey, self);
             }
 
-            var enableLogging = Data.NoTraceLog;
-            if (enableLogging != null)
-            {
-                yield return new KeyValuePair<string, string>(TraceData.NoTraceLogKey,
-                    $"{enableLogging}");
-            }
-
             yield return new KeyValuePair<string, string>(TraceData.AncestryKey,
                 $"{Data.Ancestry}:{GetRequestCount()}");
         }

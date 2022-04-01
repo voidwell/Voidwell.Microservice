@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Voidwell.Microservice.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using IdentityServer4.AccessTokenValidation;
 using System;
 using IdentityModel.AspNetCore.OAuth2Introspection;
-using Voidwell.Microservice.Extensions;
 using Voidwell.Microservice.Logging.Enrichers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 
 namespace Voidwell.Microservice.Tracing
 {
@@ -20,11 +21,11 @@ namespace Voidwell.Microservice.Tracing
             services.TryAddSingleton<ITraceContextAccessor, TraceContextAccessor>();
             services.TryAddTransient<TracingEnricher>();
 
-            services.PostConfigure<IdentityServerAuthenticationOptions>((sp, name, options) =>
+            services.PostConfigure<JwtBearerOptions>((sp, name, options) =>
             {
                 var jwtBackChannelHandler = sp.GetRequiredService<TracingHttpMessageHandler>();
-                jwtBackChannelHandler.InnerHandler = options.JwtBackChannelHandler;
-                options.JwtBackChannelHandler = jwtBackChannelHandler;
+                jwtBackChannelHandler.InnerHandler = options.BackchannelHttpHandler;
+                options.BackchannelHttpHandler = jwtBackChannelHandler;
             });
 
             services.AddHttpClient(OAuth2IntrospectionDefaults.BackChannelHttpClientName)

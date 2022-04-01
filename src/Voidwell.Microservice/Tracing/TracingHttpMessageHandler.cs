@@ -49,7 +49,7 @@ namespace Voidwell.Microservice.Tracing
             {
                 var response = await base.SendAsync(request, cancellationToken);
 
-                if (traceContextExists && !HasIgnoreEnabledByTraceHeader(context))
+                if (traceContextExists)
                 {
                     var tracingHttpMessageCompletedLog = new TracingHttpMessageCompletedLog(request, response,
                         timer.Elapsed, context?.GetElapsedTime() ?? TimeSpan.FromTicks(0));
@@ -63,12 +63,6 @@ namespace Voidwell.Microservice.Tracing
             {
                 throw new WrappedHttpRequestException(ex, request);
             }
-        }
-
-        private bool HasIgnoreEnabledByTraceHeader(TraceContext context)
-        {
-            return !string.IsNullOrEmpty(context.Data?.NoTraceLog) &&
-                   Boolean.TryParse(context.Data?.NoTraceLog, out bool noTrace);
         }
     }
 }
