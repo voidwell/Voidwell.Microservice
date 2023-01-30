@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public class HttpTokenManager : IHttpTokenManager, IDisposable
     {

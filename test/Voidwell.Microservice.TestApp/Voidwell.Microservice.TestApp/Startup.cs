@@ -1,4 +1,4 @@
-﻿using Voidwell.Microservice.AuthenticatedHttpClient;
+﻿using Voidwell.Microservice.Http.AuthenticatedHttpClient;
 using Voidwell.Microservice.Configuration;
 using Voidwell.Microservice.TestApp.Services;
 using Voidwell.Microservice.Tracing;

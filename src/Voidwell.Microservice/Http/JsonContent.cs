@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Voidwell.Microservice
+namespace Voidwell.Microservice.Http
 {
     public class JsonContent : StringContent
     {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public interface IHttpTokenManager
     {

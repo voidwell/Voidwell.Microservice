@@ -3,7 +3,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Voidwell.Microservice.Tracing;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public static class AuthenticatedHttpClientExtensions
     {

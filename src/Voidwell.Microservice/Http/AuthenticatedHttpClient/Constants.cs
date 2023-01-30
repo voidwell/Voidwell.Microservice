@@ -1,4 +1,4 @@
-﻿namespace Voidwell.Microservice.AuthenticatedHttpClient
+﻿namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     internal static class Constants
     {

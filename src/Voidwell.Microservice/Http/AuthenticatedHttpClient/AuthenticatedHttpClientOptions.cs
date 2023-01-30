@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public class AuthenticatedHttpClientOptions
     {

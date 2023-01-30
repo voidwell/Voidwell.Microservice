@@ -11,8 +11,7 @@ namespace Voidwell.Microservice.Extensions
         {
             if (!response.IsSuccessStatusCode)
             {
-                string errorContent = null;
-
+                string errorContent;
                 try
                 {
                     errorContent = await response.Content?.ReadAsStringAsync();

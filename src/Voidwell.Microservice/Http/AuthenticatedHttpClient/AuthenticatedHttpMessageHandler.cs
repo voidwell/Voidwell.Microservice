@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public class AuthenticatedHttpMessageHandler<TClient> : DelegatingHandler where TClient : class
     {

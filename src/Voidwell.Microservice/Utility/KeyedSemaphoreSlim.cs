@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Voidwell.Microservice
+namespace Voidwell.Microservice.Utility
 {
     public class KeyedSemaphoreSlim : IDisposable
     {

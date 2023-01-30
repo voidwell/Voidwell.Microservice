@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Voidwell.Microservice.AuthenticatedHttpClient
+namespace Voidwell.Microservice.Http.AuthenticatedHttpClient
 {
     public class TokenState
     {

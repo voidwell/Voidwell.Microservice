@@ -24,10 +24,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="6.0.2" />
       <PackageReference Include="IdentityModel.AspNetCore.OAuth2Introspection" Version="6.0.0" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.13" />
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.13" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
       <PackageReference Include="IdentityModel" Version="6.0.0" />
