@@ -11,7 +11,7 @@ namespace Voidwell.Microservice.Test.Hosting
         public void Converts_Value_To_UTC()
         {
             // Arrange
-            var datetime = new DateTime(2022, 1, 13, 16, 25, 35, 125, DateTimeKind.Local);
+            var datetime = DateTime.Parse("2022-01-13T16:25:35.1250000-05:00");
             var serializerOptions = new JsonSerializerOptions();
             serializerOptions.Converters.Add(new DateTimeJsonConverter());
 
@@ -20,7 +20,7 @@ namespace Voidwell.Microservice.Test.Hosting
 
             // Assert
             result.Should()
-                .Be("2022-01-13T21:25:35.125Z");
+                .Be("\"2022-01-13T21:25:35.125Z\"");
         }
     }
 }
