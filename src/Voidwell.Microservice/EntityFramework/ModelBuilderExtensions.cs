@@ -29,7 +29,7 @@ namespace Voidwell.Microservice.EntityFramework
                 entity.GetForeignKeys().ToList().ForEach(a => a.SetConstraintName(_foreignKeyFormat(a.GetConstraintName())));
 
                 // Replace index names
-                entity.GetIndexes().ToList().ForEach(a => a.SetDatabaseName(_indexFormat(a.Name)));
+                entity.GetIndexes().ToList().ForEach(a => a.SetDatabaseName(_indexFormat($"{entity.GetTableName()}_{string.Join("_", a.Properties.Select(a => a.Name))}")));
             }
         }
 
