@@ -1,35 +1,31 @@
 ﻿using System;
 using StackExchange.Redis;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Voidwell.Microservice.Cache
 {
-    public class Cache : ICache, IDisposable
+    public class Cache : ICache
     {
+        private readonly ICacheConnector _connector;
         private readonly IOptions<CacheOptions> _options;
-        private readonly SemaphoreSlim _connectionLock = new SemaphoreSlim(1, 1);
-        private ConnectionMultiplexer _redis;
-        private IDatabase _db;
 
-        public Cache(IOptions<CacheOptions> options)
+        public Cache(ICacheConnector connector, IOptions<CacheOptions> options)
         {
+            _connector = connector;
             _options = options;
-
-            Task.Run(() => ConnectAsync());
         }
 
         public async Task SetAsync(string key, object value)
         {
-            var db = await ConnectAsync();
+            var db = await _connector.ConnectAsync();
 
             try
             {
-                var sValue = JsonConvert.SerializeObject(value);
+                var sValue = JsonSerializer.Serialize(value);
                 await db.StringSetAsync(KeyFormatter(key), sValue);
             }
             catch (Exception)
@@ -40,11 +36,11 @@ namespace Voidwell.Microservice.Cache
 
         public async Task SetAsync(string key, object value, TimeSpan expires)
         {
-            var db = await ConnectAsync();
+            var db = await _connector.ConnectAsync();
 
             try
             {
-                var sValue = JsonConvert.SerializeObject(value);
+                var sValue = JsonSerializer.Serialize(value);
                 await db.StringSetAsync(KeyFormatter(key), sValue, expires);
             }
             catch (Exception)
@@ -55,7 +51,7 @@ namespace Voidwell.Microservice.Cache
 
         public async Task AddToListAsync(string key, string item)
         {
-            var db = await ConnectAsync();
+            var db = await _connector.ConnectAsync();
 
             try
             {
@@ -69,7 +65,7 @@ namespace Voidwell.Microservice.Cache
 
         public async Task RemoveFromListAsync(string key, string item)
         {
-            var db = await ConnectAsync();
+            var db = await _connector.ConnectAsync();
 
             try
             {
@@ -83,53 +79,95 @@ namespace Voidwell.Microservice.Cache
 
         public async Task<IEnumerable<string>> GetListAsync(string key)
         {
-            var db = await ConnectAsync();
+            var result = Enumerable.Empty<string>();
+
+            await TryGetListAsync(key, value =>
+            {
+                result = value;
+            });
+
+            return result;
+        }
+
+        public async Task<bool> TryGetListAsync(string key, Action<IEnumerable<string>> callback)
+        {
+            var db = await _connector.ConnectAsync();
 
             try
             {
                 var list = await db.SetMembersAsync(KeyFormatter(key));
 
-                return list.ToStringArray();
+                callback(list.ToStringArray());
+
+                return true;
             }
             catch (Exception)
             {
-                return Enumerable.Empty<string>();
+                return false;
             }
         }
 
         public async Task<long> GetListLengthAsync(string key)
         {
-            var db = await ConnectAsync();
+            long result = 0;
+
+            await TryGetListLengthAsync(key, length =>
+            {
+                result = length;
+            });
+
+            return result;
+        }
+
+        public async Task<bool> TryGetListLengthAsync(string key, Action<long> callback)
+        {
+            var db = await _connector.ConnectAsync();
 
             try
             {
-                return await db.SetLengthAsync(KeyFormatter(key));
+                callback(await db.SetLengthAsync(KeyFormatter(key)));
+
+                return true;
             }
             catch (Exception)
             {
-                return 0;
+                return false;
             }
         }
 
         public async Task<T> GetAsync<T>(string key)
         {
-            var db = await ConnectAsync();
+            T result = default;
+
+            await TryGetAsync<T>(key, value =>
+            {
+                result = value;
+            });
+
+            return result;
+        }
+
+        public async Task<bool> TryGetAsync<T>(string key, Action<T> callback)
+        {
+            var db = await _connector.ConnectAsync();
 
             try
             {
                 var value = await db.StringGetAsync(KeyFormatter(key));
 
-                return JsonConvert.DeserializeObject<T>(value);
+                callback(JsonSerializer.Deserialize<T>(value));
+
+                return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
-                return default(T);
+                return false;
             }
         }
 
         public async Task RemoveAsync(string key)
         {
-            var db = await ConnectAsync();
+            var db = await _connector.ConnectAsync();
 
             try
             {
@@ -141,42 +179,14 @@ namespace Voidwell.Microservice.Cache
             }
         }
 
-        private async Task<IDatabaseAsync> ConnectAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (string.IsNullOrWhiteSpace(_options.Value.RedisConfiguration))
-            {
-                return null;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (_redis != null)
-                return _db;
-
-            await _connectionLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (_redis == null)
-                    _redis = await ConnectionMultiplexer.ConnectAsync(_options.Value.RedisConfiguration);
-
-                _db = _redis.GetDatabase();
-            }
-            finally
-            {
-                _connectionLock.Release();
-            }
-
-            return _db;
-        }
-
         private string KeyFormatter(string key)
         {
-            return $"{_options.Value.KeyPrefix}_{key}";
-        }
+            if (!string.IsNullOrWhiteSpace(_options.Value.KeyPrefix))
+            {
+                return $"{_options.Value.KeyPrefix}_{key}";
+            }
 
-        public void Dispose()
-        {
-            _redis?.Dispose();
+            return key;
         }
     }
 }

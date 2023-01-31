@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
+using Moq.Language;
 using Moq.Language.Flow;
 
 namespace Voidwell.Microservice.Test
@@ -19,6 +16,13 @@ namespace Voidwell.Microservice.Test
             where TMock : class
         {
             return setup.Returns(Task.FromResult(0));
+        }
+
+        public static IReturnsResult<TMock> ReturnsNullAsync<TMock, TResult>(this IReturns<TMock, Task<TResult?>> mock)
+            where TMock : class
+            where TResult : class
+        {
+            return mock.ReturnsAsync(null as TResult);
         }
     }
 }

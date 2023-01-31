@@ -22,6 +22,7 @@ namespace Voidwell.Microservice.Cache
                 }
             });
 
+            services.TryAddSingleton<ICacheConnector, CacheConnector>();
             services.TryAddSingleton<ICache, Cache>();
 
             return services;

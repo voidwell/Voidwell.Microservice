@@ -29,7 +29,7 @@ namespace Voidwell.Microservice.EntityFramework
                 entity.GetForeignKeys().ToList().ForEach(a => a.SetConstraintName(_foreignKeyFormat(a.GetConstraintName())));
 
                 // Replace index names
-                entity.GetIndexes().ToList().ForEach(a => a.SetDatabaseName(_indexFormat($"{entity.GetTableName()}_{string.Join("_", a.Properties.Select(a => a.Name))}")));
+                entity.GetIndexes().ToList().ForEach(a => a.SetDatabaseName(_indexFormat(a.GetDatabaseName().RemovePrefix("IX_"))));
             }
         }
 
@@ -39,6 +39,11 @@ namespace Voidwell.Microservice.EntityFramework
             var result = string.Join("_", matches.Select(a => a.Value));
 
             return result.ToLower();
+        }
+
+        private static string RemovePrefix(this string s, string prefix)
+        {
+            return Regex.Replace(s, "^" + prefix, String.Empty);
         }
     }
 }
