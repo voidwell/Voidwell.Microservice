@@ -23,6 +23,11 @@ namespace Voidwell.Microservice.Tracing
 
             services.PostConfigure<JwtBearerOptions>((sp, name, options) =>
             {
+                if (options == null)
+                {
+                    return;
+                }
+
                 var jwtBackChannelHandler = sp.GetRequiredService<TracingHttpMessageHandler>();
                 jwtBackChannelHandler.InnerHandler = options.BackchannelHttpHandler;
                 options.BackchannelHttpHandler = jwtBackChannelHandler;

@@ -18,10 +18,7 @@ namespace Voidwell.Microservice.TestApp
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
-                        .UseMicroserviceLogging(new LoggingOptions
-                        {
-                            LoggingOutput = "flat"
-                        });
+                        .UseMicroserviceLogging(options => options.LoggingOutput = "flat");
                 });
     }
 }

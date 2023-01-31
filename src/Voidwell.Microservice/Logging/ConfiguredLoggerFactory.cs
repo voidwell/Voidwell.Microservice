@@ -95,7 +95,7 @@ namespace Voidwell.Microservice.Logging
 
             if (string.Equals(loggingOptions.LoggingOutput ?? Environment.GetEnvironmentVariable("LoggingOutput"), "flat", StringComparison.OrdinalIgnoreCase))
             {
-                loggerConfig.WriteTo.Console(outputTemplate: "[{Level:u4} {Timestamp:HH:mm:ss.fff}] {SourceContext}{NewLine}{Message} {Exception}{NewLine}Trace: {TraceRoot} {TraceAncestry}{NewLine}");
+                loggerConfig.WriteTo.Console(outputTemplate: "[{Level:u4} {Timestamp:HH:mm:ss.fff}] {SourceContext} {Message} {Exception} Trace: {TraceRoot} {TraceAncestry}{NewLine}");
             }
             else
             {

@@ -11,20 +11,26 @@ namespace Voidwell.Microservice.Logging
         public static IWebHostBuilder UseMicroserviceLogging(this IWebHostBuilder builder,
             params ILogEventEnricher[] enrichers)
         {
-            return UseMicroserviceLogging(builder, new LoggingOptions(), enrichers);
+            return UseMicroserviceLogging(builder, null, enrichers);
         }
 
         public static IWebHostBuilder UseMicroserviceLogging(this IWebHostBuilder builder,
-            LoggingOptions loggingOptions, params ILogEventEnricher[] enrichers)
+            Action<LoggingOptions> loggingOptions, params ILogEventEnricher[] enrichers)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            var options = new LoggingOptions();
+            if (loggingOptions != null)
+            {
+                loggingOptions.Invoke(options);
+            }
+
             builder.ConfigureServices(services =>
                 services.AddSingleton<ILoggerFactory>(provider =>
-                    new ConfiguredLoggerFactory(provider, loggingOptions, enrichers)));
+                    new ConfiguredLoggerFactory(provider, options, enrichers)));
 
             return builder;
         }
