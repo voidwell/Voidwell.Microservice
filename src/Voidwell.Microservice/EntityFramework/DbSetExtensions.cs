@@ -33,6 +33,7 @@ namespace Voidwell.Microservice.EntityFramework
         // Summary:
         //     If a match is found, only update properties that are not set to null in the new passed entity
         public static async Task<TEntity> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, TEntity entity)
+            where TEntity : class
         {
             var result = await dbContext.UpsertWithoutNullPropertiesAsync(new[] { entity });
             return result.FirstOrDefault();
@@ -41,7 +42,7 @@ namespace Voidwell.Microservice.EntityFramework
         //
         // Summary:
         //     If a match is found, only update properties that are not set to null in the new passed entity
-        public static async Task<IEnumerable<TEntity>> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> entities)
+        public static async Task<IEnumerable<TEntity>> UpsertRangeWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> entities)
             where TEntity : class
         {
             var dbSet = dbContext.Set<TEntity>();

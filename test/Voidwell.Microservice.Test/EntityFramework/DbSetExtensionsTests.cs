@@ -16,10 +16,10 @@ namespace Voidwell.Microservice.Test.EntityFramework
         }
 
         [Fact]
-        public async Task UpsertWithoutNullPropertiesAsync()
+        public async Task UpsertRangeWithoutNullPropertiesAsync()
         {
             // Arrange
-            var testEntities = new[]
+            var testEntities = new List<TestDatabaseFixture.TestDbItem>
             {
                 new TestDatabaseFixture.TestDbItem(1, "test1", null),
                 new TestDatabaseFixture.TestDbItem(3, "test3", "test-three"),
@@ -38,7 +38,7 @@ namespace Voidwell.Microservice.Test.EntityFramework
 
             // Act
 
-            await _fixture.FixtureDbContext.UpsertWithoutNullPropertiesAsync(testEntities);
+            await _fixture.FixtureDbContext.UpsertRangeWithoutNullPropertiesAsync(testEntities);
 
             // Assert
             var dbItems = await _fixture.FixtureDbContext.Items.ToListAsync();
