@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Voidwell.Microservice.EntityFramework
@@ -18,26 +20,6 @@ namespace Voidwell.Microservice.EntityFramework
             return entity;
         }
 
-        //
-        // Summary:
-        //     If a match is found, only update properties that are not set to null in the new passed entity
-        public static async Task<TEntity> UpsertWithoutNullPropertiesAsync<TEntity>(this DbSet<TEntity> dbSet, TEntity entity, Expression<Func<TEntity, bool>> searchPredicate)
-            where TEntity : class
-        {
-            var storeEntity = await dbSet.Where(searchPredicate).FirstOrDefaultAsync();
-
-            if (storeEntity == null)
-            {
-                await dbSet.AddAsync(entity);
-                return entity;
-            }
-            else
-            {
-                var preparedEntity = PrepareEntityUpdate(dbSet, storeEntity, entity);
-                return preparedEntity;
-            }
-        }
-
         public static async Task<IEnumerable<TEntity>> UpsertAsync<TEntity>(this DbContext ctx, IEnumerable<TEntity> entities)
             where TEntity : class
         {
@@ -50,17 +32,31 @@ namespace Voidwell.Microservice.EntityFramework
         //
         // Summary:
         //     If a match is found, only update properties that are not set to null in the new passed entity
-        public static async Task<IEnumerable<TEntity>> UpsertWithoutNullPropertiesAsync<TEntity>(this DbSet<TEntity> dbSet, IEnumerable<TEntity> entities, Expression<Func<TEntity, bool>> searchPredicate, Func<TEntity, TEntity, bool> matchPredicate)
+        public static async Task<TEntity> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, TEntity entity)
+        {
+            var result = await dbContext.UpsertWithoutNullPropertiesAsync(new[] { entity });
+            return result.FirstOrDefault();
+        }
+
+        //
+        // Summary:
+        //     If a match is found, only update properties that are not set to null in the new passed entity
+        public static async Task<IEnumerable<TEntity>> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> entities)
             where TEntity : class
         {
+            var dbSet = dbContext.Set<TEntity>();
+            var keyProps = GetKeyProperties<TEntity>(dbContext);
+
+            var predicateExpression = GetPredicateExpression(keyProps, entities.ToArray());
+            var storedEntities = await dbSet.Where(predicateExpression).ToListAsync();
+
             var result = new List<TEntity>();
             var createdEntities = new List<TEntity>();
 
-            var storedEntities = await (searchPredicate != null ? dbSet.Where(searchPredicate) : dbSet).ToListAsync();
-
             foreach (var entity in entities)
             {
-                var storeEntity = storedEntities.FirstOrDefault(storedEntity => matchPredicate(storedEntity, entity));
+                var predExpr = GetPredicateExpression(keyProps, entity).Compile();
+                var storeEntity = storedEntities.FirstOrDefault(predExpr);
                 if (storeEntity == null)
                 {
                     createdEntities.Add(entity);
@@ -78,7 +74,37 @@ namespace Voidwell.Microservice.EntityFramework
                 result.AddRange(createdEntities);
             }
 
+            await dbContext.SaveChangesAsync();
+
             return result;
+        }
+
+        private static IReadOnlyList<IProperty> GetKeyProperties<TEntity>(DbContext dbContext)
+            where TEntity : class
+        {
+            return dbContext.Model.FindEntityType(typeof(TEntity)).FindPrimaryKey().Properties;
+        }
+
+        private static readonly MethodInfo ContainsMethod = typeof(Enumerable).GetMethods()
+            .FirstOrDefault(mi => mi.Name == "Contains" && mi.GetParameters().Length == 2)
+            .MakeGenericMethod(typeof(object));
+
+        private static Expression<Func<TEntity, bool>> GetPredicateExpression<TEntity>(IReadOnlyList<IProperty> keyProps, params TEntity[] entities)
+            where TEntity : class
+        {
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            var propertyTypes = keyProps.Select(a => a.ClrType).ToArray();
+            var tupleType = typeof(Tuple).Assembly.GetType("System.Tuple`" + propertyTypes.Length);
+            var constructor = tupleType.MakeGenericType(propertyTypes).GetConstructor(propertyTypes);
+
+            var keyValues = entities.Select(entity => constructor.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
+
+            var body = Expression.Call(null, ContainsMethod,
+                Expression.Constant(keyValues),
+                Expression.New(constructor, keyProps.Select(k => Expression.Property(parameter, k.PropertyInfo))));
+
+            return Expression.Lambda<Func<TEntity, bool>>(body, parameter);
         }
 
         private static T PrepareEntityUpdate<T>(DbSet<T> dbSet, T target, T source) where T : class
