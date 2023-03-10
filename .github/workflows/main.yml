@@ -30,7 +30,7 @@ jobs:
         dotnet-version: 6.x
 
     - name: Build
-      run: dotnet build --configuration Release -p:Version=$GITHUB_REF_NAME --no-restore
+      run: dotnet build --configuration Release --no-restore
 
     - name: Run tests
       run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
