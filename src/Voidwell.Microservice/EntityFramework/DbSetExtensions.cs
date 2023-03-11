@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Voidwell.Microservice.EntityFramework
@@ -119,22 +118,11 @@ namespace Voidwell.Microservice.EntityFramework
             return result;
         }
 
-        private static ConstructorInfo GetKeyConstructor(IReadOnlyList<IProperty> keyProps)
-        {
-            var propertyTypes = keyProps.Select(a => a.ClrType).ToArray();
-            var tupleType = typeof(Tuple).Assembly.GetType("System.Tuple`" + propertyTypes.Length);
-            return tupleType.MakeGenericType(propertyTypes).GetConstructor(propertyTypes);
-        }
-
         private static IReadOnlyList<IProperty> GetKeyProperties<TEntity>(DbContext dbContext)
             where TEntity : class
         {
             return dbContext.Model.FindEntityType(typeof(TEntity)).FindPrimaryKey().Properties;
         }
-
-        private static readonly MethodInfo ContainsMethod = typeof(Enumerable).GetMethods()
-            .FirstOrDefault(mi => mi.Name == "Contains" && mi.GetParameters().Length == 2)
-            .MakeGenericMethod(typeof(object));
 
         private static Expression<Func<TEntity, bool>> GetPredicateExpression<TEntity>(ParameterExpression paramExpr, IReadOnlyList<IProperty> keyProps, TEntity entity)
             where TEntity : class
@@ -151,13 +139,12 @@ namespace Voidwell.Microservice.EntityFramework
         private static Expression<Func<TEntity, bool>> GetRangePredicateExpression<TEntity>(ParameterExpression paramExpr, IReadOnlyList<IProperty> keyProps, IEnumerable<TEntity> entities)
             where TEntity : class
         {
-            var exprCtr = GetKeyConstructor(keyProps);
-
-            var keyValues = entities.Select(entity => exprCtr.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
-
-            var body = Expression.Call(null, ContainsMethod,
-                Expression.Constant(keyValues),
-                Expression.New(exprCtr, keyProps.Select(k => Expression.Property(paramExpr, k.PropertyInfo))));
+            var body = entities.Select((entity, i) =>
+                keyProps.Select((p, i) => Expression.Equal(
+                        Expression.Property(Expression.Constant(entity), p.Name),
+                        Expression.Property(paramExpr, p.Name)))
+                    .Aggregate(Expression.AndAlso))
+                .Aggregate(Expression.Or);
 
             return Expression.Lambda<Func<TEntity, bool>>(body, paramExpr);
         }
