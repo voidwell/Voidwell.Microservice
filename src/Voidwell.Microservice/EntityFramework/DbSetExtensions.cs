@@ -35,8 +35,36 @@ namespace Voidwell.Microservice.EntityFramework
         public static async Task<TEntity> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, TEntity entity)
             where TEntity : class
         {
-            var result = await dbContext.UpsertRangeWithoutNullPropertiesAsync(new[] { entity });
-            return result.FirstOrDefault();
+            if (entity == null)
+            {
+                return null;
+            }
+
+            var keyProps = GetKeyProperties<TEntity>(dbContext);
+            var exprCtr = GetKeyConstructor(keyProps);
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            var predicateExpression = GetPredicateExpression(parameter, exprCtr, keyProps, entity);
+
+            var dbSet = dbContext.Set<TEntity>();
+            var storeEntity = await dbSet.FirstOrDefaultAsync(predicateExpression);
+
+            TEntity result;
+
+            if (storeEntity == null)
+            {
+                await dbSet.AddAsync(entity);
+                result = entity;
+            }
+            else
+            {
+                var preparedEntity = PrepareEntityUpdate(dbSet, storeEntity, entity);
+                result = preparedEntity;
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return result;
         }
 
         //
@@ -45,9 +73,19 @@ namespace Voidwell.Microservice.EntityFramework
         public static async Task<IEnumerable<TEntity>> UpsertRangeWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> entities)
             where TEntity : class
         {
+            if (!entities.Any())
+            {
+                return null;
+            }
+
+            if (entities.Count() == 1)
+            {
+                var returnValue = await dbContext.UpsertWithoutNullPropertiesAsync(entities.First());
+                return new[] { returnValue };
+            }
+
             var keyProps = GetKeyProperties<TEntity>(dbContext);
             var exprCtr = GetKeyConstructor(keyProps);
-
             var parameter = Expression.Parameter(typeof(TEntity), "e");
 
             var predicateExpression = GetPredicateExpression(parameter, exprCtr, keyProps, entities.ToArray());
