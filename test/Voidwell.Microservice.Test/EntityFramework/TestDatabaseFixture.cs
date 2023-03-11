@@ -11,7 +11,8 @@ namespace Voidwell.Microservice.Test.EntityFramework
 
             FixtureDbContext = CreateDbContext();
 
-            FixtureDbContext.Items.AddRange(GenerateDbItems(5));
+            FixtureDbContext.CompositeItems.AddRange(GenerateDbCompositeItems(5));
+            FixtureDbContext.SingleItems.AddRange(GenerateDbSingleItems(3));
 
             FixtureDbContext.SaveChanges();
         }
@@ -29,9 +30,14 @@ namespace Voidwell.Microservice.Test.EntityFramework
             return new TestDbContext(builder.Options);
         }
 
-        public IEnumerable<TestDbItem> GenerateDbItems(int amount)
+        public IEnumerable<CompositeKeyDbItem> GenerateDbCompositeItems(int amount)
         {
-            return Enumerable.Range(1, amount).Select(a => new TestDbItem(a, $"test{a}", $"test-{a}"));
+            return Enumerable.Range(1, amount).Select(a => new CompositeKeyDbItem(a, $"test{a}", $"test-{a}"));
+        }
+
+        public IEnumerable<SingleKeyDbItem> GenerateDbSingleItems(int amount)
+        {
+            return Enumerable.Range(1, amount).Select(a => new SingleKeyDbItem(a, $"test{a}"));
         }
 
         public class TestDbContext : DbContext
@@ -41,20 +47,24 @@ namespace Voidwell.Microservice.Test.EntityFramework
             {
             }
 
-            public DbSet<TestDbItem> Items { get; set; }
+            public DbSet<CompositeKeyDbItem> CompositeItems { get; set; }
+            public DbSet<SingleKeyDbItem> SingleItems { get; set; }
 
             protected override void OnModelCreating(ModelBuilder builder)
             {
                 base.OnModelCreating(builder);
 
-                builder.Entity<TestDbItem>()
+                builder.Entity<SingleKeyDbItem>()
+                    .HasKey(a => a.Value1);
+
+                builder.Entity<CompositeKeyDbItem>()
                     .HasKey(a => new { a.Value1, a.Value2 });
             }
         }
 
-        public class TestDbItem
+        public class CompositeKeyDbItem
         { 
-            public TestDbItem(int value1, string value2, string value3)
+            public CompositeKeyDbItem(int value1, string value2, string value3)
             {
                 Value1 = value1;
                 Value2 = value2;
@@ -64,6 +74,18 @@ namespace Voidwell.Microservice.Test.EntityFramework
             public int Value1 { get; set; }
             public string Value2 { get; set; }
             public string Value3 { get; set; }
+        }
+
+        public class SingleKeyDbItem
+        {
+            public SingleKeyDbItem(int value1, string value2)
+            {
+                Value1 = value1;
+                Value2 = value2;
+            }
+
+            public int Value1 { get; set; }
+            public string Value2 { get; set; }
         }
     }
 }

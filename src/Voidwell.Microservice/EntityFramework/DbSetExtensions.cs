@@ -104,11 +104,25 @@ namespace Voidwell.Microservice.EntityFramework
         private static Expression<Func<TEntity, bool>> GetPredicateExpression<TEntity>(ParameterExpression paramExpr, ConstructorInfo exprCtr, IReadOnlyList<IProperty> keyProps, params TEntity[] entities)
             where TEntity : class
         {
-            var keyValues = entities.Select(entity => exprCtr.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
+            Expression body;
 
-            var body = Expression.Call(null, ContainsMethod,
-                Expression.Constant(keyValues),
-                Expression.New(exprCtr, keyProps.Select(k => Expression.Property(paramExpr, k.PropertyInfo))));
+            if (entities.Length > 1)
+            {
+                var keyValues = entities.Select(entity => exprCtr.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
+
+                body = Expression.Call(null, ContainsMethod,
+                    Expression.Constant(keyValues),
+                    Expression.New(exprCtr, keyProps.Select(k => Expression.Property(paramExpr, k.PropertyInfo))));
+            }
+            else
+            {
+                body = keyProps
+                    .Select((p, i) => Expression.Equal(
+                        Expression.Property(Expression.Constant(entities[0]), p.Name),
+                        Expression.Property(paramExpr, p.Name)))
+                    .Aggregate(Expression.AndAlso);
+            }
+
 
             return Expression.Lambda<Func<TEntity, bool>>(body, paramExpr);
         }
