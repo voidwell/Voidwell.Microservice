@@ -35,7 +35,7 @@ namespace Voidwell.Microservice.EntityFramework
         public static async Task<TEntity> UpsertWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, TEntity entity)
             where TEntity : class
         {
-            var result = await dbContext.UpsertWithoutNullPropertiesAsync(new[] { entity });
+            var result = await dbContext.UpsertRangeWithoutNullPropertiesAsync(new[] { entity });
             return result.FirstOrDefault();
         }
 
@@ -45,10 +45,14 @@ namespace Voidwell.Microservice.EntityFramework
         public static async Task<IEnumerable<TEntity>> UpsertRangeWithoutNullPropertiesAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> entities)
             where TEntity : class
         {
-            var dbSet = dbContext.Set<TEntity>();
             var keyProps = GetKeyProperties<TEntity>(dbContext);
+            var exprCtr = GetKeyConstructor(keyProps);
 
-            var predicateExpression = GetPredicateExpression(keyProps, entities.ToArray());
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            var predicateExpression = GetPredicateExpression(parameter, exprCtr, keyProps, entities.ToArray());
+
+            var dbSet = dbContext.Set<TEntity>();
             var storedEntities = await dbSet.Where(predicateExpression).ToListAsync();
 
             var result = new List<TEntity>();
@@ -56,7 +60,7 @@ namespace Voidwell.Microservice.EntityFramework
 
             foreach (var entity in entities)
             {
-                var predExpr = GetPredicateExpression(keyProps, entity).Compile();
+                var predExpr = GetPredicateExpression(parameter, exprCtr, keyProps, entity).Compile();
                 var storeEntity = storedEntities.FirstOrDefault(predExpr);
                 if (storeEntity == null)
                 {
@@ -80,6 +84,13 @@ namespace Voidwell.Microservice.EntityFramework
             return result;
         }
 
+        private static ConstructorInfo GetKeyConstructor(IReadOnlyList<IProperty> keyProps)
+        {
+            var propertyTypes = keyProps.Select(a => a.ClrType).ToArray();
+            var tupleType = typeof(Tuple).Assembly.GetType("System.Tuple`" + propertyTypes.Length);
+            return tupleType.MakeGenericType(propertyTypes).GetConstructor(propertyTypes);
+        }
+
         private static IReadOnlyList<IProperty> GetKeyProperties<TEntity>(DbContext dbContext)
             where TEntity : class
         {
@@ -90,22 +101,16 @@ namespace Voidwell.Microservice.EntityFramework
             .FirstOrDefault(mi => mi.Name == "Contains" && mi.GetParameters().Length == 2)
             .MakeGenericMethod(typeof(object));
 
-        private static Expression<Func<TEntity, bool>> GetPredicateExpression<TEntity>(IReadOnlyList<IProperty> keyProps, params TEntity[] entities)
+        private static Expression<Func<TEntity, bool>> GetPredicateExpression<TEntity>(ParameterExpression paramExpr, ConstructorInfo exprCtr, IReadOnlyList<IProperty> keyProps, params TEntity[] entities)
             where TEntity : class
         {
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-
-            var propertyTypes = keyProps.Select(a => a.ClrType).ToArray();
-            var tupleType = typeof(Tuple).Assembly.GetType("System.Tuple`" + propertyTypes.Length);
-            var constructor = tupleType.MakeGenericType(propertyTypes).GetConstructor(propertyTypes);
-
-            var keyValues = entities.Select(entity => constructor.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
+            var keyValues = entities.Select(entity => exprCtr.Invoke(keyProps.Select(a => a.PropertyInfo.GetValue(entity)).ToArray()));
 
             var body = Expression.Call(null, ContainsMethod,
                 Expression.Constant(keyValues),
-                Expression.New(constructor, keyProps.Select(k => Expression.Property(parameter, k.PropertyInfo))));
+                Expression.New(exprCtr, keyProps.Select(k => Expression.Property(paramExpr, k.PropertyInfo))));
 
-            return Expression.Lambda<Func<TEntity, bool>>(body, parameter);
+            return Expression.Lambda<Func<TEntity, bool>>(body, paramExpr);
         }
 
         private static T PrepareEntityUpdate<T>(DbSet<T> dbSet, T target, T source) where T : class

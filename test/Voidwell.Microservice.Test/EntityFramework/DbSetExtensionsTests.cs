@@ -16,7 +16,7 @@ namespace Voidwell.Microservice.Test.EntityFramework
         }
 
         [Fact]
-        public async Task UpsertRangeWithoutNullPropertiesAsync()
+        public async Task UpsertRangeWithoutNullPropertiesAsync_ObjectArray()
         {
             // Arrange
             var testEntities = new List<TestDatabaseFixture.TestDbItem>
@@ -37,8 +37,32 @@ namespace Voidwell.Microservice.Test.EntityFramework
             };
 
             // Act
-
             await _fixture.FixtureDbContext.UpsertRangeWithoutNullPropertiesAsync(testEntities);
+
+            // Assert
+            var dbItems = await _fixture.FixtureDbContext.Items.ToListAsync();
+
+            dbItems.Should()
+                .BeEquivalentTo(expectedEntities);
+        }
+
+        [Fact]
+        public async Task UpsertRangeWithoutNullPropertiesAsync_Object()
+        {
+            // Arrange
+            var testEntity = new TestDatabaseFixture.TestDbItem(1, "test1", null);
+
+            var expectedEntities = new[]
+            {
+                new TestDatabaseFixture.TestDbItem(1, "test1", "test-1"),
+                new TestDatabaseFixture.TestDbItem(2, "test2", "test-2"),
+                new TestDatabaseFixture.TestDbItem(3, "test3", "test-3"),
+                new TestDatabaseFixture.TestDbItem(4, "test4", "test-4"),
+                new TestDatabaseFixture.TestDbItem(5, "test5", "test-5")
+            };
+
+            // Act
+            await _fixture.FixtureDbContext.UpsertWithoutNullPropertiesAsync(testEntity);
 
             // Assert
             var dbItems = await _fixture.FixtureDbContext.Items.ToListAsync();
